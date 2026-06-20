@@ -1,595 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CIM – SAP CPI & Integration Suite Monitor</title>
-<meta name="description" content="Chrome and Edge extension for SAP Integration Suite (SAP CPI) monitoring. Cloud and Edge messages, artifacts, JMS queues, certificates, dependency signals, and tenant comparison — all from one panel on your SAP page." />
-<link rel="icon" href="data:," />
-<style>
-  :root{
-    --bg:#070d1a;
-    --bg-soft:#0b1730;
-    --card:#0e1c38;
-    --line:rgba(255,255,255,0.08);
-    --line-strong:rgba(255,255,255,0.16);
-    --text:#e8edf7;
-    --text-dim:#9fb0cc;
-    --text-faint:#6c7fa0;
-    --blue:#2f8fe0;
-    --blue-bright:#5fb4ff;
-    --green:#34d399;
-    --amber:#f5b945;
-    --red:#f0625f;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{margin:0; background:var(--bg); color:var(--text); font-family:'IBM Plex Sans', -apple-system, Segoe UI, sans-serif; -webkit-font-smoothing:antialiased;}
-  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;} }
-
-  .mono{font-family:'IBM Plex Mono', 'SF Mono', Consolas, monospace;}
-  h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.01em;}
-  a{color:inherit;}
-  .eyebrow{font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--blue-bright);}
-
-  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
-  section{padding:88px 0;}
-  @media (max-width:720px){ section{padding:56px 0;} .wrap{padding:0 20px;} }
-
-  .nav{position:sticky; top:0; z-index:50; background:rgba(7,13,26,0.86); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
-  .nav .wrap{display:flex; align-items:center; justify-content:space-between; padding:14px 28px;}
-  .nav-brand{display:flex; align-items:center; gap:10px; font-weight:600; font-size:15px;}
-  .nav-logo{width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,#2f8fe0,#1c4f8a); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:700;}
-  .nav-links{display:flex; gap:28px; font-size:14px; color:var(--text-dim);}
-  .nav-links a{text-decoration:none; transition:color .15s;}
-  .nav-links a:hover{color:var(--text);}
-  .nav-cta{font-size:13px; padding:8px 16px; border-radius:7px; background:var(--blue); color:#fff; text-decoration:none; font-weight:600; transition:background .15s;}
-  .nav-cta:hover{background:var(--blue-bright);}
-  @media (max-width:720px){ .nav-links{display:none;} }
-
-  .hero{padding:96px 0 64px; position:relative; overflow:hidden;}
-  .hero::before{content:""; position:absolute; top:-200px; right:-160px; width:600px; height:600px; background:radial-gradient(circle, rgba(47,143,224,0.16), transparent 70%); pointer-events:none;}
-  .hero-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center; position:relative;}
-  @media (max-width:880px){ .hero-grid{grid-template-columns:1fr; gap:40px;} }
-  .hero h1{font-size:44px; line-height:1.12; margin:18px 0 18px;}
-  .hero h1 .accent{color:var(--blue-bright);}
-  .hero p.lead{font-size:17px; color:var(--text-dim); line-height:1.6; max-width:520px;}
-  @media (max-width:560px){ .hero h1{font-size:32px;} }
-  .hero-ctas{display:flex; gap:12px; margin-top:30px; flex-wrap:wrap;}
-  .btn{display:inline-flex; align-items:center; gap:8px; padding:12px 22px; border-radius:8px; font-size:14px; font-weight:600; text-decoration:none; border:1px solid transparent; transition:transform .12s, background .15s, border-color .15s; cursor:pointer;}
-  .btn:active{transform:translateY(1px);}
-  .btn-primary{background:var(--blue); color:#fff;}
-  .btn-primary:hover{background:var(--blue-bright);}
-  .btn-ghost{background:transparent; color:var(--text); border-color:var(--line-strong);}
-  .btn-ghost:hover{border-color:var(--blue-bright); color:var(--blue-bright);}
-  .trial-note{margin-top:18px; font-size:13px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace;}
-  .trial-note b{color:var(--green);}
-
-  .button-stage{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:28px; position:relative; min-height:340px;}
-  .stage-label{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-faint); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:18px;}
-  .stage-window{background:var(--bg-soft); border:1px solid var(--line); border-radius:10px; height:240px; position:relative; overflow:hidden;}
-  .stage-window::before{content:"sap-integration-suite.cfapps.eu10.hana.ondemand.com"; position:absolute; top:0; left:0; right:0; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-faint); background:rgba(255,255,255,0.03); padding:7px 12px; border-bottom:1px solid var(--line);}
-  .cim-pill{position:absolute; bottom:18px; right:18px; display:flex; align-items:center; gap:8px; background:#0b1730; border:1px solid var(--line-strong); border-radius:30px; padding:9px 16px 9px 12px; font-family:'IBM Plex Mono',monospace; font-size:12px; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
-  .cim-dot{width:11px; height:11px; border-radius:50%; animation:cimPulse 6s infinite; box-shadow:0 0 0 0 rgba(52,211,153,0.5);}
-  @keyframes cimPulse{
-    0%,18%{ background:var(--green); box-shadow:0 0 0 0 rgba(52,211,153,0.45);}
-    4%{box-shadow:0 0 0 6px rgba(52,211,153,0);}
-    25%,43%{ background:var(--amber); box-shadow:0 0 0 0 rgba(245,185,69,0.45);}
-    29%{box-shadow:0 0 0 6px rgba(245,185,69,0);}
-    50%,68%{ background:var(--red); box-shadow:0 0 0 0 rgba(240,98,95,0.45);}
-    54%{box-shadow:0 0 0 6px rgba(240,98,95,0);}
-    75%,93%{ background:var(--blue-bright); box-shadow:0 0 0 0 rgba(95,180,255,0.45);}
-    79%{box-shadow:0 0 0 6px rgba(95,180,255,0);}
-    100%{ background:var(--green);}
-  }
-  .stage-rows{position:absolute; top:32px; left:14px; right:14px; display:flex; flex-direction:column; gap:7px;}
-  .stage-row{height:9px; border-radius:3px; background:rgba(255,255,255,0.05);}
-  .stage-row.w1{width:78%;} .stage-row.w2{width:54%;} .stage-row.w3{width:88%;} .stage-row.w4{width:42%;}
-  .stage-caption{margin-top:16px; font-size:12.5px; color:var(--text-faint); line-height:1.55;}
-  .stage-caption b{color:var(--text-dim);}
-
-  .section-head{max-width:640px; margin-bottom:44px;}
-  .section-head h2{font-size:30px; margin-top:12px;}
-  .section-head p{color:var(--text-dim); font-size:15.5px; line-height:1.6; margin-top:10px;}
-
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
-  @media (max-width:880px){ .grid{grid-template-columns:repeat(2,1fr);} }
-  @media (max-width:560px){ .grid{grid-template-columns:1fr;} }
-  .feat{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; transition:border-color .15s, transform .15s; cursor:pointer; text-align:left; width:100%; font-family:inherit; color:inherit;}
-  .feat:hover{border-color:var(--blue-bright); transform:translateY(-2px);}
-  .feat.is-open{border-color:var(--blue-bright); background:linear-gradient(160deg, rgba(47,143,224,0.10), var(--card) 65%);}
-  .feat-top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
-  .feat-icon{width:32px; height:32px; border-radius:8px; flex-shrink:0; background:rgba(47,143,224,0.14); border:1px solid rgba(47,143,224,0.3); display:flex; align-items:center; justify-content:center; font-size:14px;}
-  .feat-chevron{color:var(--text-faint); font-size:13px; transition:transform .2s; margin-top:6px;}
-  .feat.is-open .feat-chevron{transform:rotate(180deg); color:var(--blue-bright);}
-  .feat h3{font-size:14.5px; margin:13px 0 6px;}
-  .feat p.tag{font-size:12.5px; color:var(--text-dim); line-height:1.5; margin:0;}
-
-  .feat-detail{grid-column:1 / -1; display:none; background:var(--bg-soft); border:1px solid var(--blue-bright); border-radius:12px; padding:22px 24px; margin:-2px 0 4px;}
-  .feat-detail.is-visible{display:block;}
-  .feat-detail h4{font-size:15px; color:var(--blue-bright); margin-bottom:12px; font-family:'IBM Plex Mono',monospace;}
-  .feat-detail ul{margin:0; padding-left:20px; columns:2; column-gap:32px;}
-  @media (max-width:760px){ .feat-detail ul{columns:1;} }
-  .feat-detail li{font-size:13px; color:var(--text-dim); line-height:1.55; margin-bottom:9px; break-inside:avoid;}
-  .feat-detail .close-row{margin-top:14px; text-align:right;}
-  .feat-detail .close-btn{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-faint); background:none; border:1px solid var(--line-strong); border-radius:6px; padding:5px 12px; cursor:pointer;}
-  .feat-detail .close-btn:hover{color:var(--text); border-color:var(--text-faint);}
-
-  .demo{background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
-  .demo-tabs{display:flex; border-bottom:1px solid var(--line); background:rgba(255,255,255,0.02);}
-  .demo-tab{flex:1; padding:13px 10px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-faint); border-right:1px solid var(--line);}
-  .demo-tab:last-child{border-right:none;}
-  .demo-tab.active{color:var(--blue-bright); background:rgba(47,143,224,0.08);}
-  .demo-body{padding:22px; display:grid; grid-template-columns:1fr 1fr; gap:18px;}
-  @media (max-width:680px){ .demo-body{grid-template-columns:1fr;} }
-  .demo-col h4{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); margin-bottom:10px; font-family:'IBM Plex Mono',monospace;}
-  .demo-box{background:var(--bg-soft); border:1px solid var(--line); border-radius:8px; padding:14px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-dim); line-height:1.7; min-height:120px;}
-  .demo-box .muted{color:var(--text-faint); font-style:italic;}
-  .demo-row{display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--line);}
-  .demo-row:last-child{border-bottom:none;}
-  .demo-status{font-size:11px; font-weight:600;}
-  .demo-status.pass{color:var(--green);}
-  .demo-footer{padding:14px 22px; border-top:1px solid var(--line); font-size:12px; color:var(--text-faint); background:rgba(255,255,255,0.015);}
-
-  .price-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
-  @media (max-width:680px){ .price-grid{grid-template-columns:1fr;} }
-  .price-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:28px;}
-  .price-card.highlight{border-color:rgba(47,143,224,0.45); background:linear-gradient(160deg, rgba(47,143,224,0.08), var(--card) 60%);}
-  .price-tag{font-family:'IBM Plex Mono',monospace; font-size:34px; font-weight:700; margin:10px 0 4px;}
-  .price-sub{font-size:12.5px; color:var(--text-faint); margin-bottom:18px;}
-  .price-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
-  .price-list li{font-size:13.5px; color:var(--text-dim); display:flex; gap:9px; align-items:flex-start;}
-  .price-list li::before{content:"—"; color:var(--blue-bright); flex-shrink:0;}
-
-  .steps{display:flex; flex-direction:column; gap:0;}
-  .step{display:grid; grid-template-columns:48px 1fr; gap:18px; padding:22px 0; border-bottom:1px solid var(--line);}
-  .step:last-child{border-bottom:none;}
-  .step-num{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--blue-bright); width:36px; height:36px; border-radius:8px; border:1px solid rgba(47,143,224,0.35); display:flex; align-items:center; justify-content:center; background:rgba(47,143,224,0.08);}
-  .step h4{font-size:15.5px; margin-bottom:5px;}
-  .step p{font-size:13.5px; color:var(--text-dim); line-height:1.55; margin:0;}
-
-  footer{border-top:1px solid var(--line); padding:40px 0;}
-  .foot-grid{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;}
-  .foot-links{display:flex; gap:22px; font-size:13px; color:var(--text-dim);}
-  .foot-links a{text-decoration:none;}
-  .foot-links a:hover{color:var(--blue-bright);}
-  .foot-copy{font-size:12px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace;}
-
-  .pill{display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:4px 10px; border-radius:20px; border:1px solid var(--line-strong); color:var(--text-dim);}
-  .pill b{color:var(--text);}
-
-  .group-label{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint); margin:36px 0 14px; grid-column:1/-1;}
-  .group-label:first-of-type{margin-top:0;}
-</style>
+  <meta charset="UTF-8">
+  <title>Privacy Policy - CPI Monitoring Extension</title>
 </head>
 <body>
+  <h1>Privacy Policy for CPI Monitoring Extension</h1>
 
-<nav class="nav">
-  <div class="wrap">
-    <div class="nav-brand"><div class="nav-logo mono">CIM</div><span>CIM</span></div>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#test-cases">Test Cases</a>
-      <a href="#install">Install</a>
-      <a href="#pricing">Pricing</a>
-    </div>
-    <a class="nav-cta" href="#install">Add to browser</a>
-  </div>
-</nav>
+  <p>Effective date: May 20, 2026</p>
 
-<header class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <span class="eyebrow">For SAP Integration Suite · SAP CPI</span>
-      <h1>Your SAP CPI tenant,<br/>watched from <span class="accent">one button.</span></h1>
-      <p class="lead">CIM is a Chrome and Edge extension that sits on your SAP Integration Suite page and gives you Cloud and Edge monitoring, artifacts, JMS queues, certificates, and tenant comparison — without opening a second tool.</p>
-      <div class="hero-ctas">
-        <a class="btn btn-primary" href="#install">Add to Chrome / Edge — free trial</a>
-        <a class="btn btn-ghost" href="#features">See what it does</a>
-      </div>
-      <div class="trial-note">$ trial --days 30 &nbsp;→&nbsp; <b>full access, no card required</b></div>
-    </div>
-    <div class="button-stage">
-      <div class="stage-label">// live on every SAP CPI page</div>
-      <div class="stage-window">
-        <div class="stage-rows">
-          <div class="stage-row w1"></div>
-          <div class="stage-row w2"></div>
-          <div class="stage-row w3"></div>
-          <div class="stage-row w4"></div>
-        </div>
-        <div class="cim-pill"><span class="cim-dot"></span><span>CIM</span></div>
-      </div>
-      <div class="stage-caption"><b>The button changes colour on its own.</b> Green, amber, red or blue — based on your last hour of message traffic. No click needed to know if something's wrong. Drag it anywhere; it remembers.</div>
-    </div>
-  </div>
-</header>
+  <h2>Overview</h2>
+  <p>
+    CPI Monitoring Extension is a browser extension for Microsoft Edge that helps users enhance
+    SAP Cloud Integration monitoring by providing dashboards, message insights, artifact runtime
+    overview, message journey analysis, idle iFlow analysis, and dependency insights.
+  </p>
 
-<section id="features">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Everything in one panel</span>
-      <h2>One extension, every tenant resource.</h2>
-      <p>Click any card below for the full feature breakdown — exactly what's in the extension, no more, no less.</p>
-    </div>
-    <div class="grid" id="featureGrid"></div>
-  </div>
-</section>
+  <h2>Data Collection</h2>
+  <p>
+    This extension does not collect, sell, share, or transmit user data to third-party servers.
+  </p>
 
-<section id="test-cases" style="background:var(--bg-soft); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Built-in test automation</span>
-      <h2>Three ways to test an iFlow, none of them Postman.</h2>
-      <p>One shared, encrypted login for every test. Pick the interface check each test case needs — the form adjusts itself.</p>
-    </div>
-    <div class="demo">
-      <div class="demo-tabs">
-        <div class="demo-tab active">Sync</div>
-        <div class="demo-tab">Async</div>
-        <div class="demo-tab">Match Payload Async</div>
-      </div>
-      <div class="demo-body">
-        <div class="demo-col">
-          <h4>Checks performed</h4>
-          <div class="demo-box">
-            <div class="demo-row"><span>HTTP status</span><span class="demo-status pass">✓ checked</span></div>
-            <div class="demo-row"><span>iFlow processing (MPL)</span><span class="demo-status pass">✓ checked</span></div>
-            <div class="demo-row"><span>Expected payload</span><span class="demo-status pass">✓ checked</span></div>
-          </div>
-        </div>
-        <div class="demo-col">
-          <h4>Result, one click on "Run Selected"</h4>
-          <div class="demo-box">
-            ORDER_SYNC_TEST<br/>
-            <span class="muted">running…</span><br/><br/>
-            <span style="color:var(--green)">✓ 200 OK</span> · <span style="color:var(--green)">✓ COMPLETED</span> · <span style="color:var(--green)">✓ payload matched</span>
-          </div>
-        </div>
-      </div>
-      <div class="demo-footer">Sync runs the full check. Switch to Async and the Expected Payload box disappears instantly — only HTTP and MPL status matter. Switch to Match Payload Async and it's a single GET, compared straight against the response body — no MPL involved. No endpoint handy? A ready-made utility iFlow ships with the page for exactly this — download it, deploy it, point the test at it.</div>
-    </div>
-  </div>
-</section>
+  <h2>Local Browser Processing</h2>
+  <p>
+    The extension runs locally in the user's browser. It reads SAP Cloud Integration monitoring
+    and runtime data only from the user's active SAP CPI tenant session.
+  </p>
 
-<section id="install">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Setup</span>
-      <h2>From install to first health check.</h2>
-    </div>
-    <div class="steps">
-      <div class="step"><div class="step-num mono">01</div><div><h4>Add the extension</h4><p>Install from the Chrome Web Store or Microsoft Edge Add-ons. No account, no sign-up screen.</p></div></div>
-      <div class="step"><div class="step-num mono">02</div><div><h4>Open any SAP Integration Suite page</h4><p>A small CIM button appears at the bottom-right. It's already reading your last hour of messages.</p></div></div>
-      <div class="step"><div class="step-num mono">03</div><div><h4>Pick a tenant volume profile</h4><p>A one-time setup screen tunes page sizes and lookback windows to your tenant's traffic. Takes ten seconds.</p></div></div>
-      <div class="step"><div class="step-num mono">04</div><div><h4>Click the button, anytime</h4><p>Dashboard, monitoring, artifacts, queues, certificates — all there. Drag the button anywhere; it remembers.</p></div></div>
-    </div>
-    <div style="margin-top:36px; display:flex; gap:12px; flex-wrap:wrap;">
-      <a class="btn btn-primary" href="#">Add to Chrome</a>
-      <a class="btn btn-ghost" href="#">Add to Edge</a>
-    </div>
-  </div>
-</section>
+  <h2>SAP CPI Data</h2>
+  <p>
+    The extension may read SAP CPI monitoring information such as integration flow names,
+    message statuses, runtime artifact details, certificate/JMS/dependency information, and
+    message processing log metadata when the user is already signed in to their SAP CPI tenant.
+  </p>
 
-<section id="pricing" style="background:var(--bg-soft); border-top:1px solid var(--line);">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Pricing</span>
-      <h2>Try everything for 30 days. Keep it for €4.99.</h2>
-      <p>One license, every feature, forever — no subscription, no recurring charge.</p>
-    </div>
-    <div class="price-grid">
-      <div class="price-card">
-        <span class="pill">30-day trial</span>
-        <div class="price-tag">€0</div>
-        <div class="price-sub">No card required</div>
-        <ul class="price-list">
-          <li>Every page and feature unlocked</li>
-          <li>Unlimited tenants, unlimited test cases</li>
-          <li>Trial date stored locally — survives a cache clear</li>
-        </ul>
-      </div>
-      <div class="price-card highlight">
-        <span class="pill"><b>Lifetime license</b></span>
-        <div class="price-tag">€4.99</div>
-        <div class="price-sub">One-time payment, no renewal</div>
-        <ul class="price-list">
-          <li>Card or PayPal, anywhere in the world</li>
-          <li>UPI payment available for India</li>
-          <li>Key delivered by email, activated in About → License Status</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
+  <h2>No Credential Collection</h2>
+  <p>
+    The extension does not collect SAP usernames, passwords, OAuth tokens, or login credentials.
+  </p>
 
-<footer>
-  <div class="wrap foot-grid">
-    <div class="foot-copy">© 2026 Subhra Paramita Brahma. All rights reserved.</div>
-    <div class="foot-links">
-      <a href="mailto:integrationmonitorcim@gmail.com">integrationmonitorcim@gmail.com</a>
-      <a href="#features">Features</a>
-      <a href="#install">Install</a>
-    </div>
-  </div>
-</footer>
+  <h2>No Third-Party Sharing</h2>
+  <p>
+    The developer does not sell, rent, share, or transfer user data to third parties.
+  </p>
 
-<script>
-const FEATURES = [
-  { group: "Monitoring", icon: "📊", title: "Dashboard", tag: "Live health snapshot of messages, certificates, queues, artifacts and locks.", points: [
-    "Live health snapshot combining message stats, certificates, JMS queues, artifacts and locked items in one view.",
-    "Row 1 — Message snapshot cards: Completed (1h), Failed (1h), Escalated (1h), Success Rate (1h). Each card is clickable — navigates to Cloud Monitoring filtered by that status.",
-    "Row 2 — Infrastructure cards: Critical Certificates, Queues With Messages, Started Artifacts, Locked Artifacts. All clickable with back-to-dashboard navigation.",
-    "Detail cards: Health Status (colour-coded), Message Volume (1h/24h/7d), Certificates (critical/warning/healthy counts), JMS Queues (queues with messages, total queued, overdue messages count, largest queue).",
-    "Top Message Trends and Top 5 Slowest iFlows — from sampled messages, collapsible.",
-    "Overdue Messages in JMS card — counts messages past their OverdueAt timestamp, shown in red when > 0.",
-    "Cloud/Edge context: message stats (1h/24h/7d) load from edge API when in Edge context. Certificates, JMS, Artifacts, Locked items always show cloud data.",
-    "Manual Refresh (🔄): refreshes the page you are currently on — clears the cache for that page and reloads fresh data from the API.",
-    "Dashboard refresh is the broadest — also clears idle iFlows, dependency signals, certificates, and JMS caches since the dashboard shows health data from all sources.",
-    "Clicking status cards (Success, Failed, Escalated) navigates to Cloud or Edge Monitoring filtered by that status for the last hour. A ← Back to Dashboard button clears the dashboard-applied filters on return.",
-    "Other pages refresh only their own data: Cloud Monitoring reloads messages, JMS reloads queues, Certificates reloads certs, etc.",
-    "Last Refresh indicator: green (fresh), amber (1 min), red (2+ mins)."
-  ]},
-  { group: "Monitoring", icon: "📈", title: "Cloud Monitoring", tag: "Multi-filter message monitoring with snapshot cards and saved views.", points: [
-    "View CPI messages with status snapshots, pagination, and multi-filter support.",
-    "Status snapshot cards: Completed, Failed, Escalated, Processing, Retry, Cancelled — clickable to filter messages by that status. All counts update when iFlow filter changes.",
-    "Time range filter: Last Hour, Last 24h, 7 Days, 15 Days, 30 Days — profile-aware.",
-    "iFlow filter: custom multi-select dropdown — select one or more iFlows using checkboxes. Button shows count e.g. '3 iFlows selected'. Clear All link to reset.",
-    "Sender search: type a sender name and press Enter to filter. Press Escape or click ✕ to clear.",
-    "Receiver search: same behaviour as Sender search.",
-    "Sender and Receiver columns in the message table are clickable — instantly filters to all messages from/to that system.",
-    "Custom Status search: type any custom status value and press Enter to filter the table in place, positioned after Receiver in the filter bar.",
-    "Custom Status values in the table are still clickable — navigates to Message Journey filtered by that custom status.",
-    "Custom Status is included in Saved Views.",
-    "Top Failed iFlows: shown independently below the message table — from the latest 2500 failed messages for the selected range.",
-    "Saved Views: save any combination of range, status, iFlow(s), sender, receiver, and page size as a named view.",
-    "Export CSV (current page), Export Excel (.xlsx), Export All CSV (all pages server-side).",
-    "Recent Messages table includes a Log End column — date and time each message finished processing, on two lines for compact readability."
-  ]},
-  { group: "Monitoring", icon: "🌐", title: "Edge Monitoring", tag: "Same filters and saved views, for Edge Integration Cell tenants.", points: [
-    "Full feature parity with Cloud Monitoring for Edge Integration Cell tenants.",
-    "Configure the Edge OData Virtual URL in the settings panel at the top of the page — format: https://<your-edge-host>/local — stored AES-encrypted.",
-    "Same multi-select iFlow dropdown (from edge runtime API), sender/receiver search, status snapshot cards, saved views.",
-    "Sender and Receiver columns in the message table.",
-    "Friendly error messages for: wrong URL, CORS blocked, authentication failed, timeout, 404 endpoint not found.",
-    "Context switch: select ☁️ Cloud or 🌐 Edge in the header. Switches clear all message caches.",
-    "Cloud-only pages (Artifacts, JMS, Certificates, Idle iFlows, Dependency, Version Compare) are blocked with a clear message in Edge context. Nav items appear dimmed.",
-    "Recent Messages table includes a Log End column — same format as Cloud Monitoring. Column widths optimised: Log End 75px, Application Message ID 130px, Correlation ID single line with ellipsis.",
-    "Custom Status search filter — same as Cloud Monitoring, filters table in place. Included in Saved Views."
-  ]},
-  { group: "Monitoring", icon: "🧭", title: "Message Journey", tag: "Trace any message by Correlation ID, Message ID or Custom Status.", points: [
-    "Trace messages by Correlation ID, Message ID, Application Message ID, or Custom Status.",
-    "Detail panel shows: iFlow, Package, Status, Duration, Log Level, Sender, Receiver, Message ID, Correlation ID, Application Message ID, Custom Status.",
-    "Message ID and Correlation ID are clickable links — opens SAP CPI Monitoring in a new tab, automatically filtered to that identifier.",
-    "Standard mode: server-side OData exact match by Correlation ID or Message ID.",
-    "Advanced mode: client-side filter by Application Message ID, Application Type, or Custom Status.",
-    "Custom Status mode: server-side OData filter — fetches all matching records across pages, grouped by iFlow."
-  ]},
+  <h2>Storage</h2>
+  <p>
+    The extension may temporarily store cache data in the user's browser to improve performance.
+    This data remains local to the user's browser and is not sent to the developer or external servers.
+  </p>
 
-  { group: "Artifacts", icon: "🧩", title: "Artifact Overview — Artifacts Tab", tag: "Deployed artifacts, sorted, tagged, with bulk operations.", points: [
-    "Shows all deployed runtime artifacts sorted by type (Integration Flow → Message Mapping → Script Collection → Value Mapping) then alphabetically by name within each type.",
-    "Type filter dropdown: filter by Integration Flow, Script Collection, Mapping, or Value Mapping.",
-    "Pagination: Previous / Next with page number and total count shown.",
-    "Select All checkbox in the table header: selects/deselects all rows on the current page.",
-    "Custom Tags: add coloured tags to any artifact using the 🏷️ edit button. Tags stored in chrome.storage.local per tenant — survives browser cache clear. Filter bar appears above the table when tags exist.",
-    "Bulk operations on selected artifacts: Restart iFlow, Bulk Undeploy, Bulk iFlow Trace.",
-    "Click any artifact name to open its detail panel — runtime status, version, deployed by, deployed on, last execution, last run age, lock status.",
-    "Deployed On column shows when each artifact was last deployed, in d/M/yyyy, HH:mm:ss format.",
-    "Last Execution shows a clickable 'No execution — View messages' link — navigates to Cloud Monitoring filtered for that iFlow over 7 days.",
-    "Export CSV and Export Excel — exports Name, Type, Runtime Status for all filtered artifacts."
-  ]},
-  { group: "Artifacts", icon: "🔒", title: "Artifact Overview — Locked Artifacts Tab", tag: "See exactly what a lock is blocking, cross-referenced live.", points: [
-    "Shows all design-time locked artifacts — artifact name, type, package, locked by, locked at, and current runtime status.",
-    "Runtime status is cross-referenced live so you can immediately see if a locked artifact is blocking a deployment or is already deployed."
-  ]},
-  { group: "Artifacts", icon: "📋", title: "Artifact Overview — Undeploy History Tab", tag: "A built-in audit trail of every undeploy you've run.", points: [
-    "Shows up to 10 unique artifacts you undeployed — artifact name, type, deployed on, and undeployed at timestamps.",
-    "If the same artifact is undeployed multiple times, up to 5 timestamps are shown per row separated by line breaks (latest first).",
-    "Stored in chrome.storage.local per tenant — survives browser cache clear.",
-    "Clear History button removes all entries."
-  ]},
-  { group: "Artifacts", icon: "⚙️", title: "Artifact Runtime", tag: "Status filter cards and a 7-day executed-iFlows view.", points: [
-    "Search box: type any iFlow name, package name, type or status to filter the list instantly.",
-    "Status filter cards: click Started (green) or Error (red) metric cards to filter the artifact list to that status. Click again to clear.",
-    "Metric cards: Started count, Error count, Deployed count, Executed iFlows (7d).",
-    "Executed iFlows (7d) card is a collapsible toggle — expands a table of all iFlows executed in the last 7 days (or 1 day for high/large profile).",
-    "Executed iFlows list shows: iFlow name, runtime status, last execution time, and a View Messages button.",
-    "View Messages navigates to Cloud Monitoring filtered for that iFlow over last 7 days, all statuses. A ← Back to Artifact Runtime button returns you.",
-    "Detail panel: click any artifact row for full details — runtime status, package, version, deployed by/on, last execution, last run age, lock status, locked by/at.",
-    "Export CSV and Export Excel."
-  ]},
-  { group: "Artifacts", icon: "💤", title: "Idle iFlows", tag: "Deployed and started, but processing nothing — found automatically.", points: [
-    "Finds iFlows with no recent message activity.",
-    "Scan depths: Last 1 Hour, 24h, Deep Scan 15d, Deep Scan 30d — restricted by tenant volume profile.",
-    "Cloud only — blocked in Edge context."
-  ]},
-  { group: "Artifacts", icon: "🕸", title: "Dependency Signals", tag: "Runtime artifacts, queues and certificates in one filterable view.", points: [
-    "Shows runtime artifacts, JMS queues, and certificates as dependency signals.",
-    "Supports dependency type filtering — filter to Runtime Artifact, JMS Queue, or Certificate.",
-    "Selected filter is remembered — persists when you navigate away and come back.",
-    "Saved Views: save any filter combination as a named view and restore it in one click. Up to 10 saved views stored per tenant.",
-    "Export CSV and Export Excel — exports the current filtered list.",
-    "Cloud only — blocked in Edge context."
-  ]},
+  <h2>Permissions</h2>
+  <p>
+    The extension requests browser permissions only to provide its SAP CPI monitoring features.
+    These permissions are used to read and display relevant SAP CPI monitoring data for the user.
+  </p>
 
-  { group: "Infrastructure", icon: "📜", title: "Certificate Overview", tag: "Critical / Warning / Healthy at a glance, with live search.", points: [
-    "Shows all certificates with expiry status — Critical (below 30 days), Warning, Healthy.",
-    "Colour-coded counts at a glance.",
-    "Search box: filters by name, type, owner, or last modified date — updates the table instantly as you type.",
-    "Copy button on each row: copies the certificate name to clipboard in one click.",
-    "Cloud only — blocked in Edge context."
-  ]},
-  { group: "Infrastructure", icon: "📨", title: "JMS Queues", tag: "Per-queue thresholds and overdue message counts.", points: [
-    "Queue table: Name, Messages, Size, Fill Grade, Status, Alert, Overdue columns.",
-    "Alert column: 🔴 Critical or 🟡 Warning based on configurable thresholds.",
-    "Overdue column: 🔴 count of messages past their OverdueAt timestamp per queue — fetched live from queue message API.",
-    "Queues sorted alphabetically by name.",
-    "⚙️ Thresholds: set warn/critical thresholds globally or per individual queue — stored in chrome.storage.local per tenant, survives browser cache clear.",
-    "Search box: filters by queue name, status, size, or message count without losing focus.",
-    "Filter toggle: show all queues or only queues with messages.",
-    "Cloud only — blocked in Edge context."
-  ]},
-  { group: "Infrastructure", icon: "🔔", title: "Alerts", tag: "Every tenant alert, consolidated in one place.", points: [
-    "Consolidates all tenant alerts: failed messages, certificate expiry, JMS queue thresholds, overdue messages, error artifacts.",
-    "JMS alerts show overdue message count when present, e.g. 'ORDER_QUEUE: 150 messages — ⚠️ 12 overdue'.",
-    "Alert button (🔔) in header: click to open Alerts — click again to return to the previous page you were on.",
-    "Cloud only — blocked in Edge context."
-  ]},
-  { group: "Infrastructure", icon: "📦", title: "Packages Overview (Integration Suite Design Page)", tag: "Deployment status and version directly on SAP's own design page.", points: [
-    "Appears as a blue Packages button on the SAP Integration Suite design page (/shell/design) — next to the Design page title.",
-    "Shows all packages and their artifacts in a popup, sorted by type: Integration Flow, Message Mapping, Value Mapping, Script Collection, API.",
-    "Each artifact row shows: checkbox, name, type badge (colour-coded), and deployed status badge.",
-    "Deployed status badge: Deployed (green), Error (red), Not Deployed (grey) — with deployed version number (e.g. v1.2) next to it.",
-    "Each package header shows total artifact count, ✅ deployed count, and ⬜ not deployed count.",
-    "Search box: filters by artifact name, type, or package name — matching text highlighted.",
-    "Select All checkbox for bulk operations.",
-    "🔄 Refresh, ⬇ Export CSV, ▶ Activate Trace (selected Integration Flows), ⏏ Undeploy (selected artifacts, with confirmation).",
-    "5-minute cache — subsequent opens are instant."
-  ]},
-
-  { group: "Cross-tenant", icon: "🔁", title: "Match Environments", tag: "Compare Dev, Test and Prod side by side, live.", points: [
-    "Compares runtime artifacts between two CPI environments — version mismatches, missing artifacts, and status differences side by side.",
-    "Supports three named environments: DEV, TEST, and PROD.",
-    "Register an environment: open the tab you're logged into that tenant on, open the extension, go to Match Environments, and click Register Current Tenant as DEV / TEST / PROD.",
-    "Open each tenant in its own browser tab (logged into DEV, TEST, PROD simultaneously across tabs), register each one, then run the comparison from any tab.",
-    "Each registered environment saves its own origin URL and credentials independently — you can register DEV with one user and PROD with another.",
-    "Compare From / Compare To dropdowns: select any two of DEV, TEST, PROD.",
-    "Results show: artifact name, version and status on each side. Highlights version mismatches and missing artifacts in red.",
-    "Export CSV and Export Excel — column headers use the actual registered environment names rather than generic Left/Right labels.",
-    "Clear buttons: remove individual or all registered environments.",
-    "Cloud only — blocked in Edge context."
-  ]},
-  { group: "Cross-tenant", icon: "🌍", title: "Global Search", tag: "One box across artifacts, queues and certificates.", points: [
-    "Searches across runtime artifacts, JMS queues, and certificates in a single search box.",
-    "Loads all data once when the page opens — subsequent searches filter in-memory instantly without additional API calls.",
-    "Results grouped by category: Artifacts, JMS Queues, Certificates.",
-    "Not a message search — for searching MPL message logs use Cloud Monitoring or Edge Monitoring.",
-    "Cloud only — blocked in Edge context."
-  ]},
-  { group: "Cross-tenant", icon: "💾", title: "Saved Views", tag: "Save a filter combination once, restore it in one click.", points: [
-    "Available in Cloud Monitoring and Edge Monitoring.",
-    "Save any combination of: time range, status, iFlow filter (multi-select), sender, receiver, and page size as a named view.",
-    "Restore with one click — all filters applied instantly including the iFlow multi-selection.",
-    "Views stored in chrome.storage.local per tenant — survives browser cache clear."
-  ]},
-
-  { group: "Test automation", icon: "🧪", title: "Test Cases", tag: "Sync, Async and Match Payload Async — one shared login for all.", points: [
-    "Two separate test types: Match Payload Async (max 1) and regular Test Cases (max 25) — both run against your SAP CPI tenant directly from the browser.",
-    "Shared Username and Password: one login saved per tenant — used automatically by every test case. Auto-fills on page open. Password stored using AES-GCM encryption, never in plain text.",
-    "Match Payload Async: a single GET endpoint is called once and its raw HTTP response is compared directly against the Expected Payload box — no MPL or iFlow processing status is checked, only the response body.",
-    "Don't have an endpoint? Click Download Utility iFlow for a ready-made SAP CPI iFlow package — import, deploy, point the test at it.",
-    "Regular Test Cases — Sync interface: full comparison — HTTP status, iFlow processing (MPL) status, and the response payload against Expected Payload.",
-    "Regular Test Cases — Async interface: checks only HTTP status and MPL status — the Expected Payload box is hidden and skipped, switching instantly when you change the dropdown.",
-    "Run Selected: tick any combination and run them in one click — each row shows a live ⏳ Running… status, then updates in place to ✅/❌.",
-    "Result panel shows: HTTP status vs expected, iFlow processing status, payload match result, and every related iFlow triggered for that message with its own status — Correlation ID and Message ID are clickable links into SAP CPI Monitoring.",
-    "Copy Selected, Download Selected (Excel), and Delete Selected — bulk actions for ticked test cases.",
-    "Test cases stored per tenant in chrome.storage.local — each tenant has its own independent set. Survives browser cache clear."
-  ]},
-
-  { group: "Utilities", icon: "🛠", title: "Tools", tag: "XML, JSON, Base64 and URL utilities, right on the tenant page.", points: [
-    "Utilities: XML formatting, JSON formatting, Base64 encode/decode, URL encode/decode."
-  ]},
-  { group: "Utilities", icon: "📊", title: "Export Features", tag: "Real .xlsx files, predictable filenames, no external libraries.", points: [
-    "Export CSV: exports the current page of results only.",
-    "Export Excel: real .xlsx file (Office Open XML format) — numbers exported as numeric cells, not text.",
-    "Export All CSV: fetches all pages server-side and exports as a single file — available in Cloud Monitoring and Edge Monitoring.",
-    "Export filenames include time range, page number, and record count, e.g. message-overview-24h-page1-200records.csv.",
-    "Available across: Cloud Monitoring, Edge Monitoring, Artifact Overview, Artifact Runtime, JMS Queues, Dependency Signals, Certificate Overview."
-  ]},
-  { group: "Utilities", icon: "🔄", title: "Auto Refresh & Manual Refresh", tag: "Per-page targeted refresh; Dashboard refresh is the broad one.", points: [
-    "Manual Refresh (🔄 button in header): refreshes the page you are currently on only — does NOT refresh all pages at once.",
-    "Dashboard manual refresh is the broadest — also clears idle iFlows, dependency signals, certificates and JMS caches.",
-    "Per-page refresh: Cloud Monitoring → messages | Edge Monitoring → edge messages | JMS → queues | Certificates → certs | Artifact Runtime → artifacts + execution data | Dependency → dependency signals.",
-    "Auto refresh runs silently in the background without reloading the full page — preserves scroll position, selected rows, and search text.",
-    "Auto refresh intervals: Dashboard every 60s, Cloud/Edge Monitoring every 30s, JMS Queues every 60s, Artifact Overview every 120s. All other pages are manual only.",
-    "Last Refresh indicator: green = fresh, amber = 1 min old, red = 2+ mins old."
-  ]},
-  { group: "Utilities", icon: "🎛️", title: "Header Buttons & CIM Button", tag: "Refresh, Alerts, Search, context switch, clock, and the button itself.", points: [
-    "🔄 Refresh — manual refresh for the current page, with colour-coded staleness signal.",
-    "🔔 Alerts — opens the Alerts page; click again to return to the page you were on.",
-    "🌍 Search — opens Global Search across artifacts, queues and certificates.",
-    "☁️ Cloud / 🌐 Edge context switcher — toggles context; cloud-only pages are blocked in Edge with a clear message.",
-    "⛶ Expand — toggles fullscreen mode for the extension popup.",
-    "Last Refresh label — 'just now', '30s ago', '1 min ago' etc., colour-coded.",
-    "🕐 Clock — live system clock in the header, updates every second.",
-    "CIM button (bottom-right of the SAP page): colour reflects last 1 hour message health — 🟢 zero failures, 🟡 failures below 10%, 🔴 10%+ failure rate, 🔵 no messages. Hover for exact counts.",
-    "CIM button updates every 60 seconds and is draggable — position is saved and restored after page reload."
-  ]},
-
-  { group: "Account", icon: "🔑", title: "License & Trial", tag: "30 days free, then €4.99 once — no subscription.", points: [
-    "CIM includes a 30-day free trial — full access to all features from first install, no credit card required.",
-    "Trial badge: shown below 'Integration Suite Monitor' in the sidebar — ⏳ Trial: X days left (amber), ✅ Licensed (green), 🔒 Trial Expired (red).",
-    "After 30 days: only Dashboard, Tools, and About remain accessible until a valid license key is entered.",
-    "Get a license key at cimintegrationmonitor.lemonsqueezy.com — €4.99 one-time purchase. Accepts credit/debit card and PayPal worldwide. Key delivered by email within 24 hours.",
-    "Activate: About → License Status → enter your key (format CIM-XXXX-XXXX-XXXX-XXXX) → Activate. Full access restored permanently.",
-    "Revoke: About → License Status → Remove License."
-  ]},
-  { group: "Account", icon: "⚙️", title: "Settings & Performance", tag: "Tenant volume profile, theme, encrypted Edge URL, storage guard.", points: [
-    "Tenant Volume Profile (low/medium/large/high): controls how many pages are fetched for sampling, charts, snapshot counts and lookups. Set once, every page adapts.",
-    "Theme toggle: dark and light mode — all custom dropdowns and inputs respect the selected theme.",
-    "Edge OData Virtual URL: configured per-tenant, stored AES-encrypted — never readable as plain text.",
-    "Storage guard: all localStorage writes check available space before saving — auto-evicts old design artifact cache entries past 4.5MB.",
-    "All critical data (test cases, saved views, tags, thresholds, undeploy history, dependency filter, design cache) stored in chrome.storage.local per tenant — never lost when clearing browser cache."
-  ]}
-];
-
-const grid = document.getElementById('featureGrid');
-let openIndex = null;
-let groupSeen = new Set();
-
-FEATURES.forEach((f, i) => {
-  if (!groupSeen.has(f.group)) {
-    groupSeen.add(f.group);
-    const label = document.createElement('div');
-    label.className = 'group-label';
-    label.textContent = f.group;
-    grid.appendChild(label);
-  }
-
-  const card = document.createElement('button');
-  card.className = 'feat';
-  card.setAttribute('data-index', i);
-  card.innerHTML =
-    '<div class="feat-top"><div class="feat-icon">' + f.icon + '</div><div class="feat-chevron">▾</div></div>' +
-    '<h3>' + f.title + '</h3>' +
-    '<p class="tag">' + f.tag + '</p>';
-
-  const detail = document.createElement('div');
-  detail.className = 'feat-detail';
-  detail.setAttribute('data-index', i);
-  detail.innerHTML =
-    '<h4>// ' + f.title + '</h4>' +
-    '<ul>' + f.points.map(p => '<li>' + p + '</li>').join('') + '</ul>' +
-    '<div class="close-row"><button class="close-btn">Close ✕</button></div>';
-
-  card.addEventListener('click', () => toggle(i));
-  detail.querySelector('.close-btn').addEventListener('click', () => toggle(i));
-
-  grid.appendChild(card);
-  grid.appendChild(detail);
-});
-
-function toggle(i) {
-  const cards = grid.querySelectorAll('.feat');
-  const details = grid.querySelectorAll('.feat-detail');
-
-  if (openIndex === i) {
-    cards[i].classList.remove('is-open');
-    details[i].classList.remove('is-visible');
-    openIndex = null;
-    return;
-  }
-
-  cards.forEach(c => c.classList.remove('is-open'));
-  details.forEach(d => d.classList.remove('is-visible'));
-
-  cards[i].classList.add('is-open');
-  details[i].classList.add('is-visible');
-  openIndex = i;
-
-  details[i].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-</script>
-
+  <h2>Contact</h2>
+  <p>
+    For support or privacy questions, contact: bijayacpiinfo@gmail.com
+  </p>
 </body>
 </html>
