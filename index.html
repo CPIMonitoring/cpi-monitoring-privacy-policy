@@ -13,13 +13,19 @@
 </head>
 <body>
 <h1 style="margin: 0.0px 0.0px 16.1px 0.0px; font: 24.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Privacy Policy for CPI Pulse – Integration Suite Monitor</b></span></h1>
-<p class="p2"><span class="s1">Effective date: July 4, 2026</span></p>
+<p class="p2"><span class="s1">Effective date: July 6, 2026</span></p>
 
 <h2 style="margin: 0.0px 0.0px 14.9px 0.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Overview</b></span></h2>
 <p class="p2"><span class="s1">CPI Pulse – Integration Suite Monitor ("CPI Pulse") is a browser extension for Chrome and Edge that helps users enhance SAP Integration Suite monitoring by providing dashboards, message insights, artifact runtime overview, message journey analysis, idle iFlow analysis, and dependency insights. CPI Pulse offers a free trial and a paid one-time license for continued use.</span></p>
 
 <h2 style="margin: 0.0px 0.0px 14.9px 0.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Local Browser Processing</b></span></h2>
 <p class="p2"><span class="s1">The extension runs locally in the user's browser. It reads SAP Integration Suite monitoring and runtime data only from the user's active SAP Integration Suite tenant session. This monitoring data (integration flow names, message statuses, runtime artifact details, certificate/JMS/dependency information, message processing log metadata, and similar tenant data) is processed locally and is never sent to us or to any third party.</span></p>
+
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Comparing Multiple SAP Environments (DEV / TEST / PROD)</b></span></h2>
+<p class="p2"><span class="s1">The extension lets you optionally register up to three of your own SAP tenants as DEV, TEST, and PROD (via the "Compare Runtime" and Packages pages), so you can browse or compare packages, artifacts, and deployment status across them without switching browser tabs. Registering a tenant stores only its web address (origin) locally in your browser (via <span style="font-family: monospace;">chrome.storage</span>) — this is not sent to us. To fetch data from a registered environment, the extension relays the request through that environment's own already-open browser tab, using your existing SAP session in that tab; no separate credentials are collected or transmitted, and this data stays within your browser the same as single-tenant monitoring.</span></p>
+
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Multi-Tab Detection</b></span></h2>
+<p class="p2"><span class="s1">If you open the same SAP tenant in more than one browser tab, the extension shows a one-time notice per browser session so you're aware changes made in one tab may not appear in the other until refreshed. This uses the browser's built-in same-origin messaging (BroadcastChannel) entirely within your browser — no data is sent to us or any third party as part of this.</span></p>
 
 <h2 style="margin: 0.0px 0.0px 14.9px 0.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>No Credential Collection</b></span></h2>
 <p class="p2"><span class="s1">The extension does not collect SAP usernames, passwords, OAuth tokens, or login credentials.</span></p>
